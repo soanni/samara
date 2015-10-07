@@ -91,9 +91,7 @@ class User extends CI_Controller{
                     $data->register_message = "Thank you for registering your new account. Your account is currently locked.
                                         Please follow the link sent to email {$data->email} to assign the password and
                                         unlock your account.";
-                    $this->load->view('templates/newspaper_header',$data);
-                    $this->load->view('user/register/register_success',$data);
-                    $this->load->view('templates/newspaper_footer');
+                    $this->loadRegisterStatementView($data);
                 }
             }else{
                 $data->error = 'There was a problem during the creation of your new account. Please try again.';
