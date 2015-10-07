@@ -9,7 +9,7 @@
                     $extract = My_Utility::getFirst($item['article']);
                     echo My_Utility::convertToParas($extract[0]);
                     if($extract[1]):?>
-                        <a href = "<?php echo $item['article_id'];?>">More</a>
+                        <a href = "<?php echo site_url('news/view/' . $item['article_id']);?>">More</a>
                 <?php endif;?>
             </article>
         <?php endforeach;?>

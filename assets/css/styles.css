@@ -743,52 +743,6 @@ body > footer small {
     float: left;
 }
 
-body > footer p:last-of-type{
-    float: right;
-    padding: 5px 0 0 0;
-}
-
 body > footer section {
     float: left;
-
-}
-
-body > footer h1 {
-    font-size: 200%;
-}
-
-#authors {
-    padding-top: 10px;
-    padding-right: 20px;
-    background: #d1d1d1;
-    border-top: solid 1px #888;
-    border-bottom: solid 1px #888;
-}
-
-#authors section {
-    width: 226px;
-    padding: 0 0 0 20px;
-}
-
-#footerinfo {
-    clear: both;
-    height: 30px;
-    width: 100%;
-    background: transparent;
-}
-
-
-
-/* PRINT STYLES */
-@media print {
-    * { background: transparent !important; color: #484848 !important; text-shadow: none; }
-    a, a:visited { color: #484848 !important; text-decoration: underline; }
-    a:after { content: " (" attr(href) ")"; }
-    abbr:after { content: " (" attr(title) ")"; }
-    .ir a:after { content: ""; }  /* Don't show links for images */
-    pre, blockquote { border: 1px solid #999; page-break-inside: avoid; }
-    img { page-break-inside: avoid; }
-    @page { margin: 0.5cm; }
-    p, h2, h3 { orphans: 3; widows: 3; }
-    h2, h3{ page-break-after: avoid; }
 }

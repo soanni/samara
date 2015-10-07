@@ -3,6 +3,6 @@
                 <small>&copy; Samara News</small>
             </section>
         </footer>
-        <script src="../../assets/js/scripts.js"></script>
+        <script src="<?php echo base_url('assets/js/scripts.js');?>"></script>
     </body>
 </html>

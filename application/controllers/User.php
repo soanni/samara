@@ -6,6 +6,7 @@ class User extends CI_Controller{
         parent::__construct();
         $this->load->model('user_model');
         $this->load->helper('form');
+        $this->load->helper('url_helper');
         $this->load->library('form_validation');
         $this->load->library('My_PHPMailer');
     }
@@ -33,24 +34,25 @@ class User extends CI_Controller{
                 );
                 $this->form_validation->set_rules($rules);
                 if ($this->form_validation->run() === FALSE) {
-                    $this->load->view('templates/header',$data);
+                    $this->load->view('templates/newspaper_header',$data);
                     $this->load->view('user/register/password_creation', $data);
-                    $this->load->view('templates/footer');
+                    $this->load->view('templates/newspaper_footer');
                 }else{
                     $password = $this->input->post('password');
                     if($this->user_model->update_with_password($user['user_id'],$password)){
                         $data->register_message = "New password was successfully set. Your account is unlocked now.";
-                        $this->load->view('templates/header',$data);
-                        $this->load->view('user/register/register_success',$data);
-                        $this->load->view('templates/footer');
+                        $this->loadRegisterStatementView($data);
                     }
                 }
             }else{
-                $this->load->view('user/register/already_confirmed');
-                $this->load->view('templates/footer');
+                $data->title = 'Confirmation error';
+                $data->register_message = "This account is already confirmed";
+                $this->loadRegisterStatementView($data);
             }
         }else{
-            $this->load->view('user/register/wrong_user');
+            $data->title = 'Wrong user';
+            $data->register_message = "There is no such user in the system. Please, check the confirmation link against the one in the email sent to you";
+            $this->loadRegisterStatementView($data);
         }
 
     }
@@ -74,9 +76,9 @@ class User extends CI_Controller{
         $this->form_validation->set_rules($rules);
 
         if ($this->form_validation->run() === FALSE) {
-            $this->load->view('templates/header',$data);
+            $this->load->view('templates/newspaper_header',$data);
             $this->load->view('user/register/register', $data);
-            $this->load->view('templates/footer');
+            $this->load->view('templates/newspaper_footer');
         }else{
             $data->username = $this->input->post('username');
             $data->email = $this->input->post('email');
@@ -84,47 +86,59 @@ class User extends CI_Controller{
             if($inserted_id){
                 $confirm_str = $this->user_model->getConfirmString($inserted_id);
                 // sending email with confirmation link
-                $this->send_email_link($confirm_str);
                 if(!is_null($confirm_str)){
+                    $this->send_email_link($confirm_str, $data);
                     $data->register_message = "Thank you for registering your new account. Your account is currently locked.
                                         Please follow the link sent to email {$data->email} to assign the password and
                                         unlock your account.";
-                    $this->load->view('templates/header',$data);
+                    $this->load->view('templates/newspaper_header',$data);
                     $this->load->view('user/register/register_success',$data);
-                    $this->load->view('templates/footer');
+                    $this->load->view('templates/newspaper_footer');
                 }
             }else{
                 $data->error = 'There was a problem during the creation of your new account. Please try again.';
-                $this->load->view('templates/header',$data);
+                $this->load->view('templates/newspaper_header',$data);
                 $this->load->view('user/register/register', $data);
-                $this->load->view('templates/footer');
+                $this->load->view('templates/newspaper_footer');
             }
         }
     }
 
-    public function send_email_link($confirmation){
-        $link = "http://localhost/code_igniter/index.php/user/confirm/{$confirmation}";
-        $data = new stdClass();
+    ///////////////////////////////
+
+    private function loadRegisterStatementView($data){
+        $this->load->view('templates/newspaper_header',$data);
+        $this->load->view('user/register/register_statement',$data);
+        $this->load->view('templates/newspaper_footer');
+    }
+
+    /**
+     * send email via mail.ru account
+     */
+
+    private function send_email_link($confirmation, $data){
+        $link = site_url('user/confirm') . "/{$confirmation}";
         $mail = new PHPMailer();
         $mail->IsSMTP();
         $mail->SMTPAuth   = true;
         $mail->SMTPSecure = "ssl";
-        $mail->Host       = "smtp.gmail.com";
+        $mail->Host       = "smtp.mail.ru";
         $mail->Port       = 465;
-        $mail->Username   = "legandr.86@gmail.com";
-        $mail->Password   = "7evDSyQfcR";
-        $mail->SetFrom('admin@samaranews.com', 'Andrey Andreev');
-        $mail->AddReplyTo('admin@samaranews.com', 'Andrey Andreev');  //email address that receives the response
+        $mail->Username   = "crossover_trial@mail.ru";
+        $mail->Password   = "jd5xugLMrr";
+        $mail->SetFrom('crossover_trial@mail.ru', 'Webmaster');
+        $mail->AddReplyTo('admin@samaranews.com', 'Andrey Andreev');
         $mail->Subject    = "Samara news registration confirmation";
         $mail->Body      = "{$link}";
         $mail->AltBody    = "Plain text message";
-        $destination = "rumazda@outlook.com";
+        $destination = "legandr.86@gmail.com";
         $mail->AddAddress($destination, "John Doe");
-        if(!$mail->Send()) {
-            $data->message = "Error: " . $mail->ErrorInfo;
+        if(!$mail->Send()){
+            $data->mail_message = "Error: " . $mail->ErrorInfo;
+            return 0;
         } else {
-            $data->message = "Message sent correctly!";
+            $data->mail_message = "Message sent correctly!";
+            return 1;
         }
-        $this->load->view('user/register/sent_mail',$data);
     }
 }
