@@ -198,12 +198,12 @@ nav ul {
     height: 28px;
     white-space: nowrap;
     text-align: center;
-    width: 20.2em;
+    width: 40.2em;
 
 }
 
 nav ul li {
-    width: 5em;
+    width: 10em;
     float: left;
 }
 

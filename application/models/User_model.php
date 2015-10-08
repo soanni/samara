@@ -8,7 +8,8 @@ class User_model extends CI_Model{
     }
 
     public function create_user($username,$email) {
-        // acts as a salt to encrypt the password and the confirmation string at the same time
+        // make username case-insensitive
+        $username = strtolower($username);
         $confirm = $username . time();
         $data = array(
             'username' =>$username,
@@ -58,5 +59,15 @@ class User_model extends CI_Model{
             return $query->row_array()['confirm_string'];
         }
         return null;
+    }
+
+    public function getUserRow($username){
+        $username = strtolower($username);
+        $query = $this->db->get_where('users',array('username' => $username));
+        return $query->row_array();
+    }
+
+    public function isValidPassword($password,$salt,$encrypted_pass){
+        return ($encrypted_pass == sha1($password . $salt));
     }
 }

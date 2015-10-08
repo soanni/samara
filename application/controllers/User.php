@@ -9,6 +9,92 @@ class User extends CI_Controller{
         $this->load->helper('url_helper');
         $this->load->library('form_validation');
         $this->load->library('My_PHPMailer');
+        $this->load->library('session');
+    }
+
+    public function login(){
+        $data = new stdClass();
+        $data->title = 'Login';
+        $rules = array(
+            array(
+                'field'=>'username',
+                'label'=>'Username',
+                'rules'=>array('trim','required','alpha_numeric','min_length[4]')
+            ),
+            array(
+                'field'=>'pass',
+                'label'=>'Password',
+                'rules'=>array('trim','required','min_length[6]')
+            )
+        );
+
+        $this->form_validation->set_rules($rules);
+        if ($this->form_validation->run() === FALSE) {
+            $this->load->view('templates/newspaper_header',$data);
+            $this->load->view('user/register/login', $data);
+            $this->load->view('templates/newspaper_footer');
+        }else{
+            $username = $this->input->post('username');
+            $password = $this->input->post('pass');
+            $userrow = $this->user_model->getUserRow($username);
+            if(!empty($userrow)){
+                // if user is locked then login is impossible
+                if($userrow['locked']){
+                    $data->register_message = "User {$username} is locked due to uncompleted register process. Please check your email and follow the link being sent to you";
+                    $this->loadRegisterStatementView($data);
+                }else{
+                // user is unlocked so we need to check the password correctness
+                    $salt = $userrow['salt'];
+                    $encrypted_pass = $userrow['pwd'];
+                    if($this->user_model->isValidPassword($password,$salt,$encrypted_pass)){
+                        $data->register_message = 'You are currently logged in';
+                        // set session variables
+                        $_SESSION['user_id'] = (int)$userrow['user_id'];
+                        $_SESSION['username'] = (string)$username;
+                        $_SESSION['logged_in'] = (bool)true;
+                        $redirect = site_url('user/profile/' . $userrow['user_id']);
+                        redirect($redirect);
+                    }else{
+                        $data->register_message = "Incorrect password provided. Please, try again";
+                        $this->loadRegisterStatementView($data);
+                    }
+                }
+            }else{
+                $data->register_message = "There is no such username {$username} in the system.";
+                $this->loadRegisterStatementView($data);
+            }
+        }
+    }
+
+    public function logout(){
+        $data = new stdClass();
+        $data->title = 'Log out';
+        if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true) {
+            // remove session data
+            foreach ($_SESSION as $key => $value) {
+                unset($_SESSION[$key]);
+            }
+            session_destroy();
+            // user logout ok
+            $data->register_message = "You have been logged out";
+            $this->loadRegisterStatementView($data);
+
+        } else {
+            // there user was not logged in, we cannot logged him out,
+            // redirect him to site root
+            redirect('/');
+        }
+    }
+
+    public function profile($userid=null){
+        $data = new stdClass();
+        if (isset($_SESSION['logged_in']) && $_SESSION['logged_in'] === true){
+            $data->title = 'My profile';
+            $data->result = array();
+            $this->load->view('user/profile',$data);
+        }else{
+            redirect('/');
+        }
     }
 
     public function confirm($id=null){
